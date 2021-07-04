@@ -2,11 +2,16 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-   
+    font-family: 'Noto Sans JP', sans-serif;
 }
 
 #canvas {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-top: 50px;
+}
+
+h1 {
+    text-align: center;
 }

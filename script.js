@@ -3,7 +3,8 @@ const canvas = document.createElement("canvas")
 // Set the width, height, border for the canvas
 canvas.width = 640
 canvas.height = 500
-canvas.style.border = "1px solid black"
+canvas.style.border = "2px solid black"
+canvas.style.borderRadius = "10px"
 
 // The canvas get the drawing context "2D"
 // Later to draw boxes..
@@ -12,7 +13,11 @@ document.getElementById("canvas").appendChild(canvas)
 
 // Create a variables for the gameplay
 let score;          // Current Score
+let scoreText;
+
 let highscore;      // Highest Score
+let highscoreText;
+
 let player;         // Player
 let gravity;        // Gravity for the falling effect
 let obstacles = [];      // Obstacles for the player to pass
@@ -111,7 +116,7 @@ class Obstacle {
         this.width = width
         this.height = height
         this.color = color
-        
+
         this.dx = -gameSpeed
     }
 
@@ -125,6 +130,27 @@ class Obstacle {
         ctx.beginPath()
         ctx.fillStyle = this.color
         ctx.fillRect(this.x, this.y, this.width, this.height)
+        ctx.closePath()
+    }
+}
+
+// Class Text to display score, highscore etc
+class Text {
+    constructor(text, x, y, align, color, size){
+        this.text = text
+        this.x = x
+        this.y = y
+        this.align = align
+        this.color = color
+        this.size = size
+    }
+
+    Draw(){
+        ctx.beginPath()
+        ctx.fillStyle = this.color
+        ctx.font = this.size + "px sans-serif"
+        ctx.textAlign = this.align
+        ctx.fillText(this.text, this.x, this.y)
         ctx.closePath()
     }
 }
@@ -160,6 +186,9 @@ function Start(){
 
     player = new Player(25, 0, 50, 50, "#FF5858")
     
+    scoreText = new Text("Score: " + score, 25, 25, "left", "#212121")
+    highscoreText = new Text ("Highscore: " +  highscore, canvas.width - 25, 25, "right", "#212121", "20")
+
     requestAnimationFrame(Update);
 }
 
@@ -185,11 +214,46 @@ function Update(){
     for(let i = 0; i < obstacles.length; i++){
         let o = obstacles[i];
 
+        // If to remove the obstacles if it passed the player box
+        if(o.x + o.width < 0){
+            obstacles.splice(i, 1)
+        }
+
+        if(player.x < o.x + o.width && 
+            player.x + player.width > o.x &&
+            player.y < o.y + o.height &&
+            player.y + player.height > o.y) {
+
+            obstacles = []
+            score = 0
+            spawnTimer = initialSpawnTimer
+            gameSpeed = 3
+            window.localStorage.setItem('highscore', highscore)
+        }
+
         o.Update()
     }
 
     player.Animate()
 
+    // GameSpeed, make the game faster each time the box pass an obstacles
+    gameSpeed += 0.003
+
+    // Increasing the score constantly
+    score++
+    scoreText.text = "Score: " + score
+    scoreText.Draw()
+    highscoreText.Draw()
+
+    // Save the highscore
+    if(score > highscore){
+        highscore = score
+        highscoreText.text = "Highscore: " + highscore
+
+        // Save the highscore to the localstorage of the Chrome console
+        window.localStorage.setItem('highscore', highscore)
+    }
+  
 }
 
 Start()
